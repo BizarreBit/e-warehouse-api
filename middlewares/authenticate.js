@@ -1,6 +1,6 @@
 const jwtVerify = require('jsonwebtoken').verify;
 
-const createError = require('../utilities/createError');
+const { createError } = require('../utilities/createError');
 const { User } = require('../models');
 
 module.exports = async (req, res, next) => {
@@ -11,12 +11,12 @@ module.exports = async (req, res, next) => {
       typeof authorization !== 'string' ||
       !authorization.startsWith('Bearer ')
     ) {
-      createError('unauthorize access, 401');
+      createError('unauthorize access', 401);
     }
 
     const token = authorization.split(' ')[1];
     if (!token) {
-      createError('unauthorize access, 401');
+      createError('unauthorize access', 401);
     }
 
     const payload = jwtVerify(token, process.env.JWT_SECRET_KEY);
@@ -26,7 +26,11 @@ module.exports = async (req, res, next) => {
     });
 
     if (!user) {
-      createError('unauthorize access, 401');
+      createError('unauthorize access', 401);
+    }
+
+    if (user.pwdChangedAt > payload.iat * 1000) {
+      createError('unauthorize access', 401);
     }
 
     req.user = user;

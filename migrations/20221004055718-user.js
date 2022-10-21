@@ -19,22 +19,24 @@ module.exports = {
       },
       email: {
         type: Sequelize.DataTypes.STRING,
+        allowNull: false,
         unique: true,
       },
       password: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false,
       },
-      profile_image: {
-        type: Sequelize.DataTypes.STRING,
-      },
+      profile_image: Sequelize.DataTypes.STRING,
+      pwd_changed_at: Sequelize.DataTypes.DATE,
       created_at: {
         type: Sequelize.DataTypes.DATE,
+        allowNull: false,
       },
       updated_at: {
         type: Sequelize.DataTypes.DATE,
+        allowNull: false,
       },
-    },);
+    });
   },
 
   async down(queryInterface, Sequelize) {
