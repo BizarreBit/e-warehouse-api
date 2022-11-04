@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwtSign = require('jsonwebtoken').sign;
 
 const { User } = require('../models');
-const { createError, validateAndError } = require('../utilities/createError');
+const { createError, bulkValidate } = require('../utilities/createError');
 
 const genToken = (payload) => {
   return jwtSign(payload, process.env.JWT_SECRET_KEY, {
@@ -14,10 +14,14 @@ exports.signUp = async (req, res, next) => {
   try {
     const { firstName, lastName, email, password } = req.body;
 
-    validateAndError(firstName, 'string', 'first name is required');
-    validateAndError(lastName, 'string', 'last name is required');
-    validateAndError(email, 'Email', 'email is required');
-    validateAndError(password, 'string', 'password is required');
+    const varList = [
+      { name: 'firstName', type: 'string' },
+      { name: 'lastName', type: 'string' },
+      { name: 'email', type: 'Email' },
+      { name: 'password', type: 'string' },
+    ];
+    bulkValidate({ firstName, lastName, email, password }, varList);
+
     if (password.length < 8) {
       createError(
         'password length must be equal or greater than 8 characters',
@@ -48,8 +52,11 @@ exports.signUp = async (req, res, next) => {
 exports.signIn = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    validateAndError(email, 'Email', 'email is required');
-    validateAndError(password, 'string', 'password is required');
+    const varList = [
+      { name: 'email', type: 'Email' },
+      { name: 'password', type: 'string' },
+    ];
+    bulkValidate({ email, password }, varList);
 
     const user = await User.findOne({ where: { email } });
     if (!user) {
@@ -72,9 +79,12 @@ exports.signIn = async (req, res, next) => {
 exports.changePassword = async (req, res, next) => {
   try {
     const { oldPassword, newPassword } = req.body;
+    const varList = [
+      { name: 'oldPassword', type: 'string' },
+      { name: 'newPassword', type: 'string' },
+    ];
+    bulkValidate({ oldPassword, newPassword }, varList);
 
-    validateAndError(oldPassword, 'string', 'oldPassword is required');
-    validateAndError(newPassword, 'string', 'newPassword is required');
     if (newPassword.length < 8) {
       createError(
         'password length must be equal or greater than 8 characters',
@@ -101,7 +111,7 @@ exports.changePassword = async (req, res, next) => {
       { where: { id: req.user.id } }
     );
 
-    res.status(204).json({});
+    res.status(204).json();
   } catch (err) {
     next(err);
   }
@@ -110,9 +120,12 @@ exports.changePassword = async (req, res, next) => {
 exports.changeEmail = async (req, res, next) => {
   try {
     const { newEmail, password } = req.body;
+    const varList = [
+      { name: 'newEmail', type: 'string' },
+      { name: 'password', type: 'string' },
+    ];
+    bulkValidate({ newEmail, password }, varList);
 
-    validateAndError(newEmail, 'Email', 'newEmail is required');
-    validateAndError(password, 'string', 'password is required');
     if (password.length < 8) {
       createError('invalid password', 400);
     }
@@ -123,7 +136,7 @@ exports.changeEmail = async (req, res, next) => {
       createError('invalid password', 400);
     }
     if (user.email === newEmail) {
-      createError('you are already registered with this email', 400)
+      createError('you are already registered with this email', 400);
     }
 
     const currentUser = await User.findOne({ where: { email: newEmail } });
@@ -136,7 +149,7 @@ exports.changeEmail = async (req, res, next) => {
       { where: { id: req.user.id } }
     );
 
-    res.status(204).json({});
+    res.status(204).json();
   } catch (err) {
     next(err);
   }
